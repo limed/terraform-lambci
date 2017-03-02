@@ -15,9 +15,9 @@ resource aws_lambda_function "lambci-function" {
   runtime       = "nodejs4.3"
 }
 
-resources aws_iam_role "LambdaExecution" {
+resource aws_iam_role "LambdaExecution" {
   name  = "${var.lambci_instance}-LambdaExcution-role"
-  
+
   lifecycle {
     create_before_destroy = true
   }
@@ -43,7 +43,7 @@ resources aws_iam_role "LambdaExecution" {
             ]
         }
     ]
-}  
+}
 EOF
 
 }
