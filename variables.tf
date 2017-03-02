@@ -16,6 +16,7 @@ variable lambci_version {
 
 variable GithubToken {
   description = "Must be empty or a 40 char GitHub Token"
+  default     = ""
 }
 
 variable Repositories {
