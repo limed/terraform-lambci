@@ -3,6 +3,27 @@ provider aws {
   profile = "${var.aws_profile}"
 }
 
+resource aws_dynamodb_table "ConfigTable" {
+  name            = "${var.lambci_instance}-config"
+  read_capacity   = "1"
+  write_capacity  = "1"
+  hash_key        = "project"
+
+  attribute {
+    name  = "project"
+    type  = "S"
+  }
+
+}
+
+resouce aws_dynamodb_table "BuildsTable" {
+  name            = "${var.lambci_instance}-builds"
+  read_capacity   = "1"
+  write_capacity  = "1"
+  hash_key        = "project"
+  range_key       = "buildNum"
+}
+
 resource aws_lambda_function "lambci-function" {
   function_name = "${var.lambci_instance}-build"
   description   = "LambCI build function for stack: ${var.lambci_instance}"
