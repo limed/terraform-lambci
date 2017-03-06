@@ -22,9 +22,55 @@ resouce aws_dynamodb_table "BuildsTable" {
   write_capacity  = "1"
   hash_key        = "project"
   range_key       = "buildNum"
+
+  attribute {
+    name  = "commit"
+    type  = "S"
+  }
+
+  attribute {
+    name  = "trigger"
+    type  = "S"
+  }
+
+  attribute {
+    name  = "buildNum"
+    type  = "N"
+  }
+
+  attribute {
+    name  = "project"
+    type  = "S"
+  }
+
+  attribute {
+    name  = "requestId"
+    type  = "S"
+  }
+
+  local_secondary_index {
+    name            = "commit"
+    projection_type = "KEYS_ONLY"
+    hash_key        = "project"
+    range_key       = "commit"
+  }
+
+  local_secondary_index {
+    name            = "trigger"
+    projection_type = "KEYS_ONLY"
+    hash_key        = "project"
+    range_key       = "trigger"
+  }
+
+  local_secondary_index {
+    name            = "requestId"
+    projection_type = "KEYS_ONLY"
+    hash_key        = "project"
+    range_key       = "requestId"
+  }
 }
 
-resource aws_lambda_function "lambci-function" {
+resource aws_lambda_function "BuildLambda" {
   function_name = "${var.lambci_instance}-build"
   description   = "LambCI build function for stack: ${var.lambci_instance}"
   handler       = "index.handler"
@@ -135,3 +181,20 @@ resource aws_iam_role_policy "ReadTables" {
 EOF
 }
 
+resource aws_sns_topic "InvokeTopic" {
+  name "${var.lambci_instance}-InvokeTopic"
+}
+
+resource aws_sns_topic_subscription "InvokeTopic" {
+  topic_arn = "${aws_sns_topic.InvokeTopic.arn}"
+  protocol  = "lambda"
+  endpoint  = "${aws_lambda_function.BuildLambda.arn}"
+}
+
+resource aws_lambda_permission "LambdaInvoke" {
+  function_name = "${aws_lambda_function.BuildLambda.arn}"
+  action        = "lambda:InvokeFunction"
+  principal     = "sns.amazonaws.com"
+  source_arn    = "${aws_sns_topic.InvokeTopic.arn}"
+
+}
