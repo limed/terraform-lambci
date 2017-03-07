@@ -150,7 +150,7 @@ resource aws_iam_role_policy "ReadWriteBucket" {
       "s3:PutObject",
       "s3:PutObjectAcl"
     ],
-    "Resource":"arn:aws:s3:::${aws_s3_bucket.BuildResults.id}/*",
+    "Resource":"${aws_s3_bucket.BuildResults.arn}/*",
     "Effect":"Allow"
   }
 }
@@ -175,6 +175,29 @@ resource aws_iam_role_policy "ReadTables" {
   }
 }
 
+EOF
+}
+
+resource aws_iam_role_policy "WriteTables" {
+  name    = "WriteTables"
+  role    = "${aws_iam_role.LambdaExecution.id}"
+
+  policy  = <<EOF
+{
+  "Statement": {
+    "Effect": "Allow",
+    "Action": [
+      "dynamodb:BatchWriteItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem"
+    ],
+    "Resource": [
+      "${aws_dynamodb_table.ConfigTable.arn}",
+      "${aws_dynamodb_table.BuildsTable.arn}"
+    ]
+  }
+}
 EOF
 }
 
@@ -255,15 +278,17 @@ resource aws_iam_role_policy "SnsFailures" {
   role    = "${aws_iam_role.SnsFailures.id}"
   policy  = <<EOF
 {
-  "Statement": "Allow",
-  "Action": [
-    "logs:CreateLogGroup",
-    "logs:CreateLogStream",
-    "logs:PutLogEvents",
-    "logs:PutMetricFilter",
-    "logs:PutRetentionPolicy"
-  ],
-  "Resource": "arn:aws:logs:*:*:log-group:sns/*/*/${aws_sns_topic.InvokeTopic.id}/*"
+  "Statement": {
+    "Effect": "Allow",
+    "Action": [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:PutMetricFilter",
+      "logs:PutRetentionPolicy"
+    ],
+    "Resource": "arn:aws:logs:*:*:log-group:sns/*/*/${aws_sns_topic.InvokeTopic.id}/*"
+  }
 }
 EOF
 }
